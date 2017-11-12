@@ -152,6 +152,23 @@ ORPHAN_DIR_NAME = '!orphaned'
 ORPHAN_DIR_EXCLUDE_LIST = [ORPHAN_DIR_NAME, '!misc']
 ORPHAN_FILE_EXCLUDE_LIST = [INFO_FILENAME, SERIAL_FILENAME]
 
+IGNORED_EXTRAS = [
+    'wallpaper', 'artwork', 'poster', 'flac', 'sounds',
+    '(wav)', 'video', 'behind', 'screensaver', 'background',
+    'German', 'concept', '(Mac)', 'making of', 'render',
+    'commentary', 'interview', 'machinima', 'localiz', 'photo',
+    'design', 'scenes', '(fr)', '(de)']
+
+def remove_ignored_extras(item):
+    for extra in item.extras:
+        for ignored in IGNORED_EXTRAS:
+            if ignored.lower() in extra.desc.lower():
+                warn('     EXTRA IGNORED %s.' % extra.desc)
+
+    for i in IGNORED_EXTRAS:
+        item.extras[:] = [extra for extra in item.extras if i.lower() not in extra.desc.lower()]
+
+
 def request(url, args=None, byte_range=None, retries=HTTP_RETRY_COUNT, delay=HTTP_FETCH_DELAY):
     """Performs web request to url with optional retries, delay, and byte range.
     """
@@ -851,6 +868,8 @@ def cmd_download(savedir, skipextras, skipgames, skipids, dryrun, id):
                     item.serial = item.serial.replace(u'<span>', '')
                     item.serial = item.serial.replace(u'</span>', os.linesep)
                     fd_serial.write(item.serial)
+
+        remove_ignored_extras(item)
 
         # Populate queue with all files to be downloaded
         for game_item in item.downloads + item.extras:
